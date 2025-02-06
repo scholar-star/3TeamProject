@@ -1,33 +1,55 @@
-from fastapi import FastAPI
-from dataclasses import dataclass
+from fastapi import FastAPI, HTTPException, status, Depends, Request
+from fastapi.templating import Jinja2Templates
+from sqlmodel import SQLModel
+from dataclasses import dataclass, asdict
+from enum import Enum
+import time
 
-@dataclass
-class SignupReq:
-    id: str
-    password: str
-    Name: str
-    Phone: str|None = None
-    Email: str
 
-@dataclass
-class SigninReq:
-    username: str
-    password: str
-
+templates = Jinja2Templates(directory="html")
 app = FastAPI()
 
-@app.post("/login")
-def login(req: SigninReq):
-    return {
-        "token": "This is token.",
-        "detail": None
-    }
 
-@app.post("/signup")
-def signup(req: SignupReq):
-    return {
-        "detail": "None"
-    }
+login_session = {}
 
-# DB에서 포스팅 정보를 가지고 온다.
-# 단, 포스팅 정보에 주제가 들어가 있다.
+
+
+@dataclass
+class Post:
+    id: int
+    title: str
+    content: str
+    author: str
+    created_at: int
+    published: bool
+
+@dataclass
+class CreatePostReq:
+    title: str
+    content: str
+    author: str
+    publish: bool = True
+
+
+
+@app.get("/home_page")
+def open_home_page(request: Request):
+    return templates.TemplateResponse("home_page.html", {"request":request})
+
+@app.get("/write_page")
+def open_write_page(request: Request):
+    return templates.TemplateResponse("write_page.html", {"request":request})
+
+
+@app.post("/write_page")
+def create_post(cPost: CreatePostReq):
+    nCurTimestamp = int(time.time())
+    result = Post(id=1, title=cPost.title,
+                 content=cPost.content,
+                 author = cPost.author,
+                 created_at=nCurTimestamp,
+                 published=cPost.publish)
+    print(result)
+
+
+    return {"ok": True}

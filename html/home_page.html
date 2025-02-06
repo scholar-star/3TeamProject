@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>블로그 홈</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFFFFF;
+            color: black;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            position: relative;
+        }
+        .auth-buttons {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .auth-buttons button {
+            background: white;
+            color: #1DB954;
+            padding: 5px 10px;
+            margin-left: 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+        }
+        .top-posts {
+            display: flex;
+            justify-content: space-between;
+        }
+        .top-post {
+            width: 30%;
+            background: #222;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .post-list {
+            margin-top: 20px;
+        }
+        .post {
+            background: #333;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .category-menu {
+            margin-bottom: 20px;
+        }
+        .category-menu button {
+            background: #1DB954;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .write-post {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1DB954;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        블로그 홈
+        <div class="auth-buttons" id="auth-buttons">
+            <button onclick="location.href='login.html'">로그인</button>
+            <button onclick="location.href='signup.html'">회원가입</button>
+        </div>
+    </div>
+    <div class="container">
+        <h2>인기 게시물</h2>
+        <div class="top-posts" id="top-posts">
+            <!-- 인기 게시물 동적 삽입 -->
+        </div>
+        
+        <div class="category-menu">
+            <button onclick="filterCategory('전체')">전체</button>
+            <button onclick="filterCategory('주식')">주식</button>
+            <button onclick="filterCategory('경제')">경제</button>
+        </div>
+        
+        <div class="post-list" id="post-list">
+            <!-- 게시글 동적 삽입 -->
+        </div>
+    </div>
+    
+    <button class="write-post" id="write-post" onclick="location.href='write_post.html'">글쓰기</button>
+    
+    <script>
+        async function fetchPosts() {
+            const response = await fetch('http://localhost:8000/posts');
+            const posts = await response.json();
+            
+            const topPostsContainer = document.getElementById('top-posts');
+            const postListContainer = document.getElementById('post-list');
+            
+            topPostsContainer.innerHTML = '';
+            postListContainer.innerHTML = '';
+            
+            posts.slice(0, 3).forEach(post => {
+                const div = document.createElement('div');
+                div.classList.add('top-post');
+                div.innerHTML = `<h3>${post.title}</h3><p>${post.summary}</p>`;
+                topPostsContainer.appendChild(div);
+            });
+            
+            posts.forEach(post => {
+                const div = document.createElement('div');
+                div.classList.add('post');
+                div.innerHTML = `<h3>${post.title}</h3><p>${post.summary}</p>`;
+                postListContainer.appendChild(div);
+            });
+        }
+        
+        function filterCategory(category) {
+            alert(category + ' 카테고리 필터 적용');
+            // TODO: 카테고리 필터 기능 구현
+        }
+        
+        function checkLogin() {
+            const username = localStorage.getItem('username');
+            const authButtons = document.getElementById('auth-buttons');
+            const writePostButton = document.getElementById('write-post');
+            if (username) {
+                authButtons.innerHTML = `<span>환영합니다, ${username}님!</span>`;
+                writePostButton.style.display = 'block';
+            }
+        }
+        
+        fetchPosts();
+        checkLogin();
+    </script>
+</body>
+</html>
