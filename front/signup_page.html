@@ -123,6 +123,7 @@
             const data = await response.json();
             if (response.ok) {
                 alert('회원가입 성공!');
+                location.href="http://localhost:8000/home_page"
             } else {
                 alert('회원가입 실패: ' + data.detail);
             }

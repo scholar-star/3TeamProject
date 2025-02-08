@@ -112,8 +112,8 @@
     <div class="navbar">
         블로그 홈
         <div class="auth-buttons" id="auth-buttons">
-            <button onclick="location.href='login.html'">로그인</button>
-            <button onclick="location.href='signup.html'">회원가입</button>
+            <button onclick="location.href='/signup_page'">로그인</button>
+            <button onclick="location.href='/signup'">회원가입</button>
         </div>
     </div>
     <div class="container">
@@ -149,7 +149,7 @@
         </div>
     </div>
     
-    <button class="write-post" id="write-post" onclick="location.href='write_post.html'">글쓰기</button>
+    <button class="write-post" id="write-post" onclick="location.href='http://localhost:8000/post'">글쓰기</button>
     
     <script>
         let currentPage = 1;
@@ -197,11 +197,11 @@
         }
         
         function checkLogin() {
-            const username = localStorage.getItem('username');
+            const token = sessionStorage.getItem('token');
             const authButtons = document.getElementById('auth-buttons');
             const writePostButton = document.getElementById('write-post');
-            if (username) {
-                authButtons.innerHTML = `<span>환영합니다, ${username}님!</span>`;
+            if (token) {
+                authButtons.innerHTML = `<span>환영합니다</span>`;
                 writePostButton.style.display = 'block';
             }
         }

@@ -109,7 +109,7 @@
         </div>
     </div>
     
-    <button class="write-post" id="write-post" onclick="location.href='write_post.html'">글쓰기</button>
+    <button class="write-post" id="write-post" onclick="location.href='http://localhost:8000/write-post'">글쓰기</button>
     
     <script>
         async function fetchPosts() {
@@ -143,11 +143,11 @@
         }
         
         function checkLogin() {
-            const username = localStorage.getItem('username');
+            const token = sessionStorage.getItem('token');
             const authButtons = document.getElementById('auth-buttons');
             const writePostButton = document.getElementById('write-post');
-            if (username) {
-                authButtons.innerHTML = `<span>환영합니다, ${username}님!</span>`;
+            if (token) {
+                authButtons.innerHTML = `<span>환영합니다</span>`;
                 writePostButton.style.display = 'block';
             }
         }

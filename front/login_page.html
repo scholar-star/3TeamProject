@@ -83,8 +83,9 @@
             });
             const data = await response.json();
             if (response.ok) {
-                localStorage.setItem('token', data.token);
+                sessionStorage.setItem('token', data.token);
                 alert('로그인 성공!');
+                location.href="http://localhost:8000/home_page"
             } else {
                 alert('로그인 실패: ' + data.detail);
             }

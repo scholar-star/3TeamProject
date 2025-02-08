@@ -8,18 +8,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import SQLModel, Session, create_engine, select, Field
 from dataclasses import dataclass, asdict
 from enum import Enum
+from apps.services.post_service import PostService, PostsResp, PostReq, SignupReq, ReplyReq
 import time
 import bcrypt
 
 templates = Jinja2Templates(directory="front")
-
-@dataclass
-class SignupReq(SQLModel, table=True):
-    username: str = Field(primary_key=True)
-    password: str
-    name: str
-    phone: str|None = None
-    email: str|None = None
 
 @dataclass
 class SigninReq:
@@ -52,13 +45,13 @@ def on_startup():
 
 @app.get("/home_page")
 def open_home_page(request: Request):
-    return templates.TemplateResponse("home_page.html", {"request":request})
+    return templates.TemplateResponse("home.html", {"request":request})
 
-@app.get("/write_page")
+@app.get("/write-post")
 def open_write_page(request: Request):
     return templates.TemplateResponse("write_page.html", {"request":request})
 
-@app.post("/write_page")
+@app.post("/write-post")
 def create_post(cPost: CreatePostReq):
     nCurTimestamp = int(time.time())
     result = Post(id=1, title=cPost.title,
@@ -109,4 +102,45 @@ def signup(req: SignupReq, session=Depends(get_db_session)):
 @app.get("/signup")
 def viewSignup(req: Request):
     return templates.TemplateResponse("signup_page.html", {"request": req})
+
+@app.get("/posts")
+def get_posts(page: int=1, limit: int=2,
+              db=Depends(get_db_session),
+              postService: PostService = Depends()) -> PostsResp:
+    resp = postService.get_posts(db, page, limit)
+    return resp
+
+'''
+# 게시글 목록 API (JSON 응답)
+@app.get("/posts", response_model=List[Posts])
+def get_posts():
+    with Session(engine) as session:
+        posts = session.exec(select(Posts)).all()
+        return posts
+'''
+
+@app.get("/post")
+def open_write_page(request: Request):
+    return templates.TemplateResponse("post.html", {"request":request})
+
+
+@app.post("/post")
+def create_post(cPost: PostReq, db = Depends(get_db_session),
+                postService: PostService = Depends()):
+    resp = postService.create_post(db, cPost)
+    print(resp)
+
+    return resp
  
+@app.get("/posts/{post_id}/replies")
+def open_reply_write(request: Request):
+    return templates.TemplateResponse("reply.html", {"request":request})
+
+@app.post("/posts/{post_id}/replies")
+def create_reply(rPost: ReplyReq, post_id:int, db = Depends(get_db_session),
+                 postService: PostService = Depends()):
+    rPost.post_id = post_id
+    resp = postService.create_reply(db, rPost)
+    print(resp)
+    return resp
+
