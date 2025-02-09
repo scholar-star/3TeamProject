@@ -201,10 +201,17 @@
             const authButtons = document.getElementById('auth-buttons');
             const writePostButton = document.getElementById('write-post');
             if (token) {
-                authButtons.innerHTML = `<span>환영합니다</span>`;
+                //authButtons.innerHTML = `<span>환영합니다</span>`;
+                authButtons.innerHTML = `<button onclick="logout()">로그아웃</button>`;
                 writePostButton.style.display = 'block';
             }
         }
+
+        // 로그아웃 페이지 시험삼아 만들기
+        // function logout() {
+        //     sessionStorage.removeItem('token');
+        //     location.href = '/home_page';
+        // }
 
         function viewPost(postId) {
             window.location.href = `post_detail.html?post_id=${postId}`;

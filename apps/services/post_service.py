@@ -1,19 +1,23 @@
 from dataclasses import dataclass, asdict
 from sqlmodel import (
     Field, SQLModel,
-    Session, create_engine, select
+    Session, create_engine, select, Relationship
 )
 from enum import Enum
 import time
-
-
 
 class RESULT_CODE(Enum):
     NOT_FOUND = "Not Found"
     FAILED = "Failed"
     SUCCESS = "success"
 
-
+@dataclass
+class SignupReq(SQLModel, table=True):
+    username: str = Field(primary_key=True)
+    password: str
+    name: str
+    phone: str|None = None
+    email: str|None = None
 
 # 테이블을 생성, 클래스 이름이 테이블 이름
 class Posts(SQLModel, table=True):
@@ -24,7 +28,6 @@ class Posts(SQLModel, table=True):
     content: str
     published: bool = Field(index=True)
 
-
 @dataclass
 class PostReq:
     user_id: str
@@ -32,12 +35,27 @@ class PostReq:
     content: str
     published: bool = True
 
-
 @dataclass
 class PostsResp:
     posts: list[Posts]
     err_str: str | None = None
 
+@dataclass # 댓글 데이터베이스 - user_id는 외래키
+class Replys(SQLModel, table=True):
+    reply_id: int | None = Field(primary_key=True)
+    post_id: int | None = Field(foreign_key="posts.post_id")
+    user_id: str = Field(foreign_key="signupreq.username")
+    reply: str
+
+@dataclass
+class ReplyReq:
+    user_id: str
+    reply: str
+
+@dataclass
+class ReplysResp:
+    replys: list[Replys]
+    err_str: str | None = None
 
 class PostService:
     def get_post(self, db: Session, post_id: int):
@@ -117,3 +135,55 @@ class PostService:
         except:
             return RESULT_CODE.FAILED
         return RESULT_CODE.SUCCESS
+    
+class ReplyService:
+    def get_replys(self, db: Session, post_id: int):
+        replys_query = select(Replys).where(Replys.post_id == post_id)
+        try:
+            replys = db.exec(replys_query).all()
+            if not replys:
+                return ReplysResp(replys=[])
+            return ReplysResp(replys=replys)
+        except Exception as e:
+            print(e)
+            return ReplysResp(replys=[], err_str="서버 오류")
+        
+
+    def create_reply(self, db:Session, rPost: ReplyReq) -> RESULT_CODE:
+        try:
+            reply = Replys()
+            reply.post_id = rPost.post_id
+            reply.user_id = rPost.user_id
+            reply.reply = rPost.reply
+            db.add(reply)
+            db.commit()
+            db.refresh(reply)
+        except Exception as e:
+            print(e)
+            return RESULT_CODE.FAILED
+
+    def update_reply(self, db:Session, reply_id: int, reply: ReplyReq) -> RESULT_CODE:
+        oldReply = db.get(Replys, reply_id)
+        if not oldReply:
+            return RESULT_CODE.NOT_FOUND
+
+        dictReply = asdict(reply) # dataclass를 dictionary로 변환
+        oldReply.sqlmodel_update(dictReply) # 딕셔너리 상태로 업데이트
+        try:
+            db.add(oldReply)
+            db.commit()
+            db.refresh(oldReply)
+        except:
+            return RESULT_CODE.FAILED
+
+    def delete_reply(self, db: Session, reply_id: int) -> RESULT_CODE:
+        deleteReply = db.get(Replys, reply_id)
+        if not deleteReply:
+            return RESULT_CODE.NOT_FOUND
+        
+        try:
+            db.delete(deleteReply)
+            db.commit()
+        except:
+            return RESULT_CODE.FAILED
+

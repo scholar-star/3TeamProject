@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlmodel import SQLModel, Session, create_engine, select, Field
 from dataclasses import dataclass, asdict
 from enum import Enum
-from apps.services.post_service import PostService, PostsResp, PostReq, SignupReq, ReplyReq
+from apps.services.post_service import PostService, PostsResp, PostReq, SignupReq, ReplyReq, ReplyService
 import time
 import bcrypt
 
@@ -138,9 +138,32 @@ def open_reply_write(request: Request):
 
 @app.post("/posts/{post_id}/replies")
 def create_reply(rPost: ReplyReq, post_id:int, db = Depends(get_db_session),
-                 postService: PostService = Depends()):
+                 replyService: ReplyService = Depends()):
+    print(post_id)
     rPost.post_id = post_id
-    resp = postService.create_reply(db, rPost)
+    print(rPost)
+    resp = replyService.create_reply(db, rPost)
+    print(resp)
+    return resp
+
+@app.get("/posts/{post_id}/repliesList")
+def get_replies(post_id:int, db = Depends(get_db_session),
+                replyService: ReplyService = Depends()):
+    resp = replyService.get_replys(db, post_id)
+    print(resp)
+    return resp
+
+@app.put("/posts/{post_id}/replies/{reply_id}")
+def update_reply(rPost: ReplyReq, post_id:int, reply_id:int, db = Depends(get_db_session),
+                 replyService: ReplyService = Depends()):
+    resp = replyService.update_reply(db, reply_id, rPost)
+    print(resp)
+    return resp
+
+@app.delete("/posts/{post_id}/replies/{reply_id}")
+def delete_reply(reply_id:int, db = Depends(get_db_session),
+                 replyService: ReplyService = Depends()):
+    resp = replyService.delete_reply(db, reply_id)
     print(resp)
     return resp
 

@@ -54,22 +54,49 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .comment-text {
+            flex-grow: 1;
+        }
+        .comment-actions {
+            margin-left: 10px;
+        }
+        .comment-actions button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .comment-actions button.edit {
+            background-color: #ffc107;
+            color: #fff;
+        }
+        .comment-actions button.delete {
+            background-color: #dc3545;
+            color: #fff;
         }
     </style>
     <script>
         async function submitComment(event) {
             event.preventDefault();
-            const userId = sessionStorage.getItem('user_id');
+            var userId = "test"; // test용 : JWT 토큰 Decoding 알아내면 수정할 예정
             const reply = document.getElementById('reply').value;
+            
+            let path = window.location.pathname; // /posts/id/reply
+            let postId = path.split('/')[2];
 
-            const response = await fetch('/comments', {
+            const response = await fetch(`/posts/${postId}/replies`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ user_id: userId, reply: reply })
             });
-
+            console.log(response);
             if (response.ok) {
                 document.getElementById('reply').value = '';
                 loadComments();
@@ -79,15 +106,62 @@
         }
 
         async function loadComments() {
-            const response = await fetch('/comments');
+            let path = window.location.pathname; // /posts/id/reply
+            let postId = path.split('/')[2];
+
+            const response = await fetch(`/posts/${postId}/repliesList`);
             const comments = await response.json();
+            const replys = comments.replys;
+            console.log(replys);
             const commentsList = document.getElementById('comments-list');
             commentsList.innerHTML = '';
-            comments.forEach(comment => {
+            replys.forEach(comment => {
                 const li = document.createElement('li');
-                li.textContent = `${comment.user_id}: ${comment.reply}`;
+                li.innerHTML = `
+                    <span class="comment-text">${comment.user_id}: ${comment.reply}</span>
+                    <div class="comment-actions">
+                        <button class="edit" onclick="editComment(${comment.reply_id})">수정</button>
+                        <button class="delete" onclick="deleteComment(${comment.reply_id})">삭제</button>
+                    </div>
+                `;
                 commentsList.appendChild(li);
             });
+        }
+
+        async function editComment(replyId) {
+            let path = window.location.pathname; // /posts/id/reply
+            let postId = path.split('/')[2];
+            var userId = "test"; // test용 : JWT 토큰 Decoding 알아내면 수정할 예정
+
+            const newReply = prompt("수정할 댓글을 입력하세요:");
+            if (newReply) {
+                const response = await fetch(`/posts/${postId}/replies/${replyId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId, reply: newReply })
+                });
+                if (response.ok) {
+                    loadComments();
+                } else {
+                    alert('Failed to edit comment');
+                }
+            }
+        }
+
+        async function deleteComment(replyId) {
+            let path = window.location.pathname; // /posts/id/reply
+            let postId = path.split('/')[2];
+
+            const response = await fetch(`/posts/${postId}/replies/${replyId}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                loadComments();
+            } else {
+                alert('Failed to delete comment');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', loadComments);
