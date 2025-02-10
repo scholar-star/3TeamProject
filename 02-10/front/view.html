@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 보기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            padding: 20px;
+            background: #222;
+            border-radius: 10px;
+        }
+        h2 {
+            color: #1DB954;
+        }
+        .info {
+            font-size: 14px;
+            color: #bbb;
+            margin-bottom: 15px;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .back-button {
+            margin-top: 20px;
+            padding: 10px;
+            background: #1DB954;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="post-title">게시글 제목</h2>
+        <div class="info">
+            작성자: <span id="post-user_id"></span> | 작성 시간: <span id="post-time"></span> | 게시글 ID: <span id="post-id"></span>
+        </div>
+        <div class="content" id="post-content">
+            게시글 내용이 여기에 표시됩니다.
+        </div>
+        <button class="back-button" onclick="goBack()">뒤로 가기</button>
+    </div>
+
+    <script>
+        // URL에서 post_id 추출하는 함수
+        function getPostIdFromUrl() {
+            const path = window.location.pathname; // 예: "/view/2"
+            const match = path.match(/\/view\/(\d+)$/); // 숫자 ID 추출
+            return match ? match[1] : null;
+        }
+
+        // 게시글 정보 불러오기
+        async function fetchPost() {
+            const postId = getPostIdFromUrl();
+
+            if (!postId) {
+                alert("잘못된 접근입니다.");
+                return;
+            }
+
+            try {
+                console.log(`📢 요청 보냄: POST /view, postId=${postId}`);
+
+                // 백엔드에 POST 요청 보내기
+                const response = await fetch(`http://localhost:8000/view`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ post_id: parseInt(postId) }) // 숫자로 변환
+                });
+
+                if (!response.ok) {
+                    throw new Error("게시글을 찾을 수 없습니다.");
+                }
+
+                const post = await response.json(); // JSON 응답 파싱
+                console.log("📢 서버 응답:", post);
+
+                // HTML 요소에 데이터 채우기
+                document.getElementById('post-title').textContent = post.title;
+                document.getElementById('post-user_id').textContent = post.user_id;
+                document.getElementById('post-time').textContent = new Date(post.created_at * 1000).toLocaleString();
+                document.getElementById('post-id').textContent = post.post_id;
+                document.getElementById('post-content').textContent = post.content;
+
+            } catch (error) {
+                console.error("❌ 오류 발생:", error);
+                alert(error.message);
+            }
+        }
+
+        // 뒤로 가기
+        function goBack() {
+            window.history.back();
+        }
+
+        // 페이지 로딩 시 게시글 정보 불러오기
+        fetchPost();
+    </script>
+</body>
+</html>
