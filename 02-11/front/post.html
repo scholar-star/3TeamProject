@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 작성</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFFFFF;
+            color: black;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 50%;
+            margin: 50px auto;
+            padding: 20px;
+            background: #11B0A0;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+        input, textarea {
+            width: 100%; 
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .options-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            width: 100%; 
+            box-sizing: border-box;
+        }
+        select {
+            width: 40%;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+        }
+        #category {
+            flex-grow: 1; 
+            max-width: 50%;
+        }
+        .private-container {
+            display: flex;
+            align-items: center;
+            background-color: #1DB954;
+            border: 2px solid black;
+            border-radius: 20px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        .private-text {
+            color: white;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        .private-box {
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+            border-radius: 4px;
+        }
+        .private-box.checked {
+            background-color: white;
+        }
+        .private-box::after {
+            content: "✔";
+            font-size: 12px;
+            color: #1DB954;
+            display: none;
+        }
+        .private-box.checked::after {
+            display: block;
+        }
+        button {
+            background: #1DB954;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>게시글 작성</h2>
+
+        <!-- 카테고리 선택 & 비공개 설정 한 줄 정렬 -->
+        <div class="options-container">
+            <select id="category">
+                <option value="">카테고리 선택</option>
+                <option value="경제">경제</option>
+                <option value="연예">연예</option>
+                <option value="여행">여행</option>
+                <option value="패션">패션</option>
+                <option value="기타">기타</option>
+            </select>
+            <div class="private-container" onclick="togglePrivate()">
+                <span class="private-text">비공개</span>
+                <div class="private-box" id="private-box"></div>
+            </div>
+        </div>
+
+        <input type="text" id="title" placeholder="제목 입력">
+        <textarea id="content" rows="10" placeholder="내용 입력"></textarea>
+
+        <button onclick="submitPost()">작성 완료</button>
+    </div>
+
+    <script>
+        let isPrivate = false;
+
+        function togglePrivate() {
+            isPrivate = !isPrivate;
+            document.getElementById('private-box').classList.toggle('checked', isPrivate);
+        }
+
+        async function submitPost() {
+            const token = sessionStorage.getItem('token');
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const category = document.getElementById('category').value;
+            const published = !isPrivate; // 비공개 선택 시 false, 미선택 시 true
+
+            //const user_id = localStorage.getItem('user_id');
+            const data = await fetch('http://localhost:8000/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: token })
+            }).then(res => res.json());
+            const user_id = data.id;
+
+            if (!user_id) {
+                alert("로그인이 필요합니다.");
+                return;
+            }
+
+            if (!title || !content || !category) {
+                alert("제목, 내용, 카테고리를 모두 입력해주세요.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:8000/cpost', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id, title, content, category, published })
+            });
+            if (response.ok) {
+                alert("게시글이 등록되었습니다.");
+                window.location.href = "http://localhost:8000/home"; // 메인 페이지로 이동
+            } else {
+                alert("게시글 작성에 실패했습니다.");
+            }
+        }
+    </script>
+</body>
+</html>
