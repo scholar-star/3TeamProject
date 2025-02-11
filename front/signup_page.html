@@ -101,13 +101,48 @@
         //         alert('로그인 실패: ' + data.detail);
         //     }
         // }
+        function validateUsername(username) {
+            return username.length >= 5;
+        }
+
+        function validatePassword(password) {
+            const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?^&])[A-Za-z\d@$!%*^#?&]{8,}$/;
+            return regex.test(password)
+        }
 
         async function signup() {
             const username = document.getElementById('signup-username').value;
+            if(!validateUsername(username)) {
+                alert("아이디는 최소 5자 이상이어야 합니다.");
+                return;
+            }
+
+            const duplicate = await fetch("http://localhost:8000/duplicate" ,{
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({"username":username})
+            });
+            const valid = await duplicate.json();
+
+            if(!(valid.ok)) {
+                alert("이미 존재하는 아이디입니다.");
+                return;
+            }
+            
             const password = document.getElementById('signup-password').value;
+            if(!(validatePassword(password))) {
+                alert("비밀번호는 최소 8자 이상이어야 하며, 영문, 숫자, 특수문자가 모두 포함되어야 합니다.");
+                return;
+            }
+            
             const name = document.getElementById('signup-name').value;
             const phone = document.getElementById('signup-phone').value;
             const email = document.getElementById('signup-email').value;
+
+            if(email.indexOf('@')==-1 || email.indexOf('.')==-1) {
+                alert("이메일 형식이 올바르지 않습니다.");
+                return;
+            }
             
             const response = await fetch('http://localhost:8000/signup', {
                 method: 'POST',
@@ -123,7 +158,7 @@
             const data = await response.json();
             if (response.ok) {
                 alert('회원가입 성공!');
-                location.href="http://localhost:8000/home_page"
+                location.href="http://localhost:8000/home"
             } else {
                 alert('회원가입 실패: ' + data.detail);
             }
