@@ -9,7 +9,7 @@ from sqlmodel import SQLModel, Session, create_engine, select, Field
 from dataclasses import dataclass, asdict
 from enum import Enum
 from apps.models.post import sPostReq, CreatePostReq, PostResp, PostsResp, Posts
-from apps.models.author import SignupReq, SigninReq, Dupli_Id
+from apps.models.author import AuthInfo, SigninReq, Dupli_Id
 from apps.services.post_service import PostService
 from apps.services.reply_service import ReplyService, ReplysResp, ReplyReq
 from apps.services.auth_service import AuthService
@@ -62,7 +62,7 @@ def viewLogin(req: Request):
     return templates.TemplateResponse("login_page.html", {"request": req})
 
 @app.post("/signup")
-def signup(req: SignupReq, session=Depends(get_db_session), authService: AuthService = Depends()):
+def signup(req: AuthInfo, session=Depends(get_db_session), authService: AuthService = Depends()):
     resp = authService.signup_service(session, req)
     print(resp)
     return resp
@@ -80,7 +80,11 @@ def valid_duplicate(req: Dupli_Id, session=Depends(get_db_session), authService:
 @app.post("/token")
 def get_userId(reqToken: Token):
     try:
-        payload = jwt.decode(reqToken.token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(reqToken.token, SECRET_KEY, algorithms=[ALGORITHM]) 
+        # {
+        # id: user_id
+        # exp: expire time
+        # }
         return payload
     except:
         raise HTTPException(status_code=401, detail="Invalid token")

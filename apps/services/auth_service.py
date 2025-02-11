@@ -1,6 +1,6 @@
 from enum import Enum
 from fastapi import Depends, HTTPException
-from apps.models.author import SignupReq, SigninReq, SigninResp, Dupli_Id
+from apps.models.author import AuthInfo, SigninReq, SigninResp, Dupli_Id
 from apps.dependencies.dependencies import get_db_session
 from sqlmodel import select, Session
 import bcrypt, time
@@ -16,7 +16,7 @@ ALGORITHM = 'HS256'
 
 class AuthService:
     def login_service(self,db:Session, username:str, password:str):
-        state = select(SignupReq).where(SignupReq.username == username)
+        state = select(AuthInfo).where(AuthInfo.username == username)
         person = db.exec(state).first()
         if not person:
             raise HTTPException(status_code = 404, detail="User not found")
@@ -31,7 +31,7 @@ class AuthService:
         else:
             raise HTTPException(status_code=401, detail="Login failed")
 
-    def signup_service(self, db:Session, req: SignupReq):
+    def signup_service(self, db:Session, req: AuthInfo):
         crypted_password = bcrypt.hashpw(req.password.encode('utf-8'), bcrypt.gensalt())
         req.password = crypted_password
         try:
@@ -46,7 +46,7 @@ class AuthService:
         }
     
     def valid_duplicate(self, userId: str, db:Session):
-        state = select(SignupReq).where(SignupReq.username == userId)
+        state = select(AuthInfo).where(AuthInfo.username == userId)
         person = db.exec(state).first()
         if person:
             return {"ok": False}

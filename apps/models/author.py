@@ -7,7 +7,7 @@ class SigninReq:
     password: str
 
 @dataclass
-class SignupReq(SQLModel, table=True):
+class AuthInfo(SQLModel, table=True):
     username: str = Field(primary_key=True)
     password: str
     name: str

@@ -16,7 +16,7 @@ class Posts(SQLModel, table=True):
 class Replys(SQLModel, table=True):
     reply_id: int | None = Field(primary_key=True)
     post_id: int | None = Field(foreign_key="posts.post_id")
-    user_id: str = Field(foreign_key="signupreq.username")
+    user_id: str = Field(foreign_key="authinfo.username")
     reply: str
 
 class PostLike(SQLModel, table=True):
