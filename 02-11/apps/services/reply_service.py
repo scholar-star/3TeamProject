@@ -1,3 +1,4 @@
+from apps.models.replys import *
 from dataclasses import dataclass, asdict
 from sqlmodel import (
     Field, SQLModel,
@@ -7,16 +8,6 @@ from enum import Enum
 import time
 from apps.services.post_service import RESULT_CODE
 from apps.dependencies.tables import Replys
-
-@dataclass
-class ReplyReq:
-    user_id: str
-    reply: str
-
-@dataclass
-class ReplysResp:
-    replys: list[Replys]
-    err_str: str | None = None
 
 class ReplyService:
     def get_replys(self, db: Session, post_id: int):

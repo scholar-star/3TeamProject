@@ -52,6 +52,9 @@
             게시글 내용이 여기에 표시됩니다.
         </div>
         <button class="back-button" onclick="goBack()">뒤로 가기</button>
+        
+        <button class="back-button" onclick="reply()">댓글 달기</button>
+        
     </div>
 
     <script>
@@ -107,6 +110,12 @@
         function goBack() {
             window.history.back();
         }
+
+        function reply() {
+                const postId = getPostIdFromUrl();
+                window.location.href = `http://localhost:8000/posts/${postId}/replies`;
+        }
+        // 임시 작성한 댓글란 이동
 
         // 페이지 로딩 시 게시글 정보 불러오기
         fetchPost();

@@ -1,6 +1,6 @@
 from enum import Enum
 from fastapi import Depends, HTTPException
-from apps.models.author import SignupReq, SigninReq, SigninResp
+from apps.models.author import SignupReq, SigninReq, SigninResp, Dupli_Id
 from apps.dependencies.dependencies import get_db_session
 from sqlmodel import select, Session
 import bcrypt, time
@@ -44,4 +44,12 @@ class AuthService:
         return {
             "ok":True
         }
+    
+    def valid_duplicate(self, userId: str, db:Session):
+        state = select(SignupReq).where(SignupReq.username == userId)
+        person = db.exec(state).first()
+        if person:
+            return {"ok": False}
+        else:
+            return {"ok": True}
 

@@ -93,8 +93,11 @@
                 },
                 body: JSON.stringify({ token: token })
             }).then(res => res.json());
-            const userid = data.id;
-            
+            const userId = data.id;
+            if(userId===undefined) {
+                alert("로그인이 필요합니다.");
+                location.href = '/login';
+            }
             const reply = document.getElementById('reply').value;
             
             let path = window.location.pathname; // /posts/id/reply
@@ -127,7 +130,7 @@
                 },
                 body: JSON.stringify({ token: token })
             }).then(res => res.json());
-            const userid = data.id;
+            const userId = data.id;
             let path = window.location.pathname; // /posts/id/reply
             let postId = path.split('/')[2];
 
@@ -140,7 +143,7 @@
             replys.forEach(comment => {
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span class="comment-text">${comment.user_id}: ${comment.reply}</span>
+                    <span class="comment-text" id="comment-text-${comment.reply_id}">${comment.user_id}: ${comment.reply}</span>
                     <div class="comment-actions">
                          ${comment.user_id === userId ? 
                           `<button class="edit" onclick="editComment(${comment.reply_id})">수정</button>
@@ -153,6 +156,7 @@
 
         async function editComment(replyId) {
             const commentTextElement = document.getElementById(`comment-text-${replyId}`);
+            console.log(commentTextElement);
             const originalText = commentTextElement.innerText.split(': ')[1];
             commentTextElement.innerHTML = `
                 <textarea id="edit-reply-${replyId}" rows="3" style="width: 100%;">${originalText}</textarea>

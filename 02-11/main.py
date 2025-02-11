@@ -9,7 +9,7 @@ from sqlmodel import SQLModel, Session, create_engine, select, Field
 from dataclasses import dataclass, asdict
 from enum import Enum
 from apps.models.post import sPostReq, CreatePostReq, PostResp, PostsResp, Posts
-from apps.models.author import SignupReq, SigninReq
+from apps.models.author import SignupReq, SigninReq, Dupli_Id
 from apps.services.post_service import PostService
 from apps.services.reply_service import ReplyService, ReplysResp, ReplyReq
 from apps.services.auth_service import AuthService
@@ -51,10 +51,10 @@ def create_post(cPost: CreatePostReq):
     return {"ok": True}
 
 @app.post("/login")
-def login(req: SigninReq, session=Depends(get_db_session)):
+def login(req: SigninReq, session=Depends(get_db_session), authService: AuthService = Depends()):
     username = req.username
     password = req.password
-    resp = AuthService.login_service(req, session, username, password)
+    resp = authService.login_service(session, username, password)
     return resp
 
 @app.get("/login")
@@ -62,14 +62,20 @@ def viewLogin(req: Request):
     return templates.TemplateResponse("login_page.html", {"request": req})
 
 @app.post("/signup")
-def signup(req: SignupReq, session=Depends(get_db_session)):
-    resp = AuthService.signup_service(req, session)
+def signup(req: SignupReq, session=Depends(get_db_session), authService: AuthService = Depends()):
+    resp = authService.signup_service(session, req)
     print(resp)
     return resp
 
 @app.get("/signup")
 def viewSignup(req: Request):
     return templates.TemplateResponse("signup_page.html", {"request": req})
+
+@app.post("/duplicate")
+def valid_duplicate(req: Dupli_Id, session=Depends(get_db_session), authService: AuthService = Depends()):
+    resp = authService.valid_duplicate(req.username, session)
+    print(resp)
+    return resp
 
 @app.post("/token")
 def get_userId(reqToken: Token):
@@ -152,7 +158,7 @@ def get_posts():
 '''
 
 
-# 게시글 조회 페이지 호출출
+# 게시글 조회 페이지 호출
 @app.get("/view/{post_id}")
 def post_page(request: Request):
     return templates.TemplateResponse("view.html", {"request":request})

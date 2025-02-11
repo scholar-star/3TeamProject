@@ -18,3 +18,8 @@ class SignupReq(SQLModel, table=True):
 class SigninResp:
     token: str
     detail: str | None = None
+
+@dataclass
+class Dupli_Id:
+    username: str
+
